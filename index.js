@@ -10,15 +10,16 @@ const ws = require('ws');
 globalThis.WebSocket = ws; 
 const app = express();
 
-// Inisialisasi Firebase Admin
+// Inisialisasi Firebase Admin pakai 3 Variabel (Jurus Bongkar Mesin)
 if (!admin.apps.length) {
-  // Kita suruh server ngebaca dari Environment Variable
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  
-  // FIX JALUR NINJA BUAT \n
-  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-  
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // Jurus ninja maksa Node.js nerjemahin teks \n jadi tombol Enter
+      privateKey: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined
+    })
+  });
 }
 
 const allowedOrigins = [
@@ -29,14 +30,13 @@ const allowedOrigins = [
 // 2. SETUP CORS UNTUK HTTP-ONLY COOKIES
 app.use(cors({
   origin: function (origin, callback) {
-    // Kalau origin-nya terdaftar, atau dari alat tester (postman/insomnia)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true // Wajib ada biar Cookie bisa lewat
+  credentials: true 
 }));
 
 app.use(express.json());
@@ -48,8 +48,6 @@ app.use('/api/found-items', require('./src/routes/foundItemRoutes'));
 app.use('/api/fcm', require('./src/routes/fcmRoutes'));
 app.use('/api/admin', require('./src/routes/adminRoutes'));
 app.use('/api/lost-reports', require('./src/routes/lostReportRoutes'));
-
-// RUTE NOTIFIKASI YANG UDAH BENER
 app.use('/api/notifications', require('./src/routes/notificationRoutes'));
 
 // 4. FIX PORT DINAMIS BUAT RAILWAY
