@@ -1,12 +1,21 @@
 // File: utils/mailer.js
 const nodemailer = require('nodemailer');
+const dns = require('dns');
 
-// Setup transporter menggunakan credentials dari .env
+// 🚨 JURUS PAKSA JALUR IPV4 (Biar Railway ga nyasar ke IPv6 Google yang buntu)
+dns.setDefaultResultOrder('ipv4first');
+
+// Setup transporter menggunakan SMTP Gmail langsung (Anti ESOCKET)
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // Wajib true buat port 465
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false // Mulusin jalan biar ga ditolak gara-gara sertifikat
   }
 });
 
@@ -40,7 +49,7 @@ transporter.verify((error, success) => {
   if (error) {
     console.log("Koneksi email bermasalah:", error);
   } else {
-    console.log("Server Nodemailer siap mengirim OTP!");
+    console.log("Server Nodemailer siap mengirim OTP via IPv4!");
   }
 });
 
