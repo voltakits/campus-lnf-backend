@@ -29,13 +29,13 @@ const allowedOrigins = [
 
 // 2. SETUP CORS UNTUK HTTP-ONLY COOKIES
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: [
+    'http://localhost:5173', // Izin buat frontend di laptop
+    'https://frontend-campus-lnf.vercel.app', // Tembak langsung URL Vercel lu di sini!
+    process.env.FRONTEND_URL
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true 
 }));
 
