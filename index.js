@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
+// const cors = require('cors'); // <-- KITA PENSIUNKAN LIBRARY INI!
 const admin = require('firebase-admin'); 
 const cookieParser = require('cookie-parser');
 const ws = require('ws');
@@ -19,20 +19,34 @@ if (!admin.apps.length) {
   });
 }
 
-// 2. SETUP CORS STANDAR INTERNASIONAL (Anti Nyangkut)
-const corsOptions = {
-  origin: true, // Otomatis ngebaca Vercel
-  credentials: true 
-};
-app.use(cors(corsOptions));
+// 2. SATPAM PRIBADI (PENGGANTI LIBRARY CORS)
+// Ini anti-404 dan anti-crash Node 22 karena nggak pakai regex rute!
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
+  // JIKA YANG DATANG ADALAH SATPAM PREFLIGHT (OPTIONS), LANGSUNG KASIH 200 OK!
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end(); 
+  }
+
+  next();
+});
 
 app.use(express.json());
 app.use(cookieParser()); 
 
-// 3. RUTE TESTER (Buat ngecek Railway nyangkut atau nggak)
+// 3. RUTE TESTER
 app.get('/ping', (req, res) => {
-    res.json({ message: 'PONG! KODINGAN TERBARU SUDAH AKTIF BRO!' });
+    res.json({ message: 'PONG! CORS MANUAL SUDAH AKTIF BRO!' });
 });
 
 // 4. DAFTAR ROUTES UTAMA
@@ -43,6 +57,6 @@ app.use('/api/admin', require('./src/routes/adminRoutes'));
 app.use('/api/lost-reports', require('./src/routes/lostReportRoutes'));
 app.use('/api/notifications', require('./src/routes/notificationRoutes'));
 
-// 5. BINDING PORT 0.0.0.0 (Wajib buat Railway biar stabil)
+// 5. BINDING PORT BUAT RAILWAY
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
