@@ -25,7 +25,7 @@ const corsOptions = {
   credentials: true 
 };
 app.use(cors(corsOptions));
-app.options('/*', cors(corsOptions)); // <--- Ini yang bakal ngebunuh 404 Preflight
+
 
 app.use(express.json());
 app.use(cookieParser()); 
