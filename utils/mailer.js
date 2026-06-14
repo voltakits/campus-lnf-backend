@@ -16,9 +16,9 @@ const transporter = nodemailer.createTransport({
   },
   tls: {
     rejectUnauthorized: false // Mulusin jalan biar ga ditolak gara-gara sertifikat
-  }
+  },
+  family: 4 // <--- INI KETINGGALAN BRO! Wajib dimasukin biar ga nyasar ke IPv6
 });
-
 // Fungsi untuk mengirim email OTP
 const sendOTPEmail = async (toEmail, otpCode) => {
   const mailOptions = {
