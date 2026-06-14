@@ -59,8 +59,8 @@ const verifyOtp = async (req, res) => {
     // PASANG COOKIE HTTP-ONLY
     res.cookie('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // true jika di production (HTTPS)
-      sameSite: 'lax', // <--- PENTING: Pakai 'lax' biar diizinin lintas port saat development
+      secure: true, // true jika di production (HTTPS)
+      sameSite: none, // <--- PENTING: Pakai 'lax' biar diizinin lintas port saat development
       maxAge: 24 * 60 * 60 * 1000 // 24 jam
     });
 
@@ -75,8 +75,8 @@ const verifyOtp = async (req, res) => {
 const logout = (req, res) => {
   res.clearCookie('auth_token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax'
+    secure: true,
+    sameSite: none
   });
   res.json({ status: 'success', message: 'Berhasil logout' });
 };
