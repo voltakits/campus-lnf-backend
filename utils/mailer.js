@@ -9,15 +9,16 @@ dns.setDefaultResultOrder('ipv4first');
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 465,
-  secure: true, // Wajib true buat port 465
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
+  // TAMBAHKAN BARIS INI:
+  family: 4, 
   tls: {
-    rejectUnauthorized: false // Mulusin jalan biar ga ditolak gara-gara sertifikat
-  },
-  family: 4 // <--- INI KETINGGALAN BRO! Wajib dimasukin biar ga nyasar ke IPv6
+    rejectUnauthorized: false
+  }
 });
 // Fungsi untuk mengirim email OTP
 const sendOTPEmail = async (toEmail, otpCode) => {
