@@ -5,6 +5,8 @@ const { sendOTPEmail } = require('../../utils/mailer');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const requestOtp = async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email wajib diisi!' });
@@ -13,7 +15,10 @@ const requestOtp = async (req, res) => {
   const expiresAt = new Date(Date.now() + 5 * 60000).toISOString();
 
   try {
-    const { error: dbError } = await supabase.from('otp_codes').insert([{ email, otp_code: otpCode, expires_at: expiresAt }]);
+    const { error: dbError } = await supabase
+      .from('otp_codes')
+      .insert([{ email, otp_code: otpCode, expires_at: expiresAt }]);
+
     if (dbError) throw dbError;
 
     const emailSent = await sendOTPEmail(email, otpCode);
@@ -21,6 +26,7 @@ const requestOtp = async (req, res) => {
 
     res.json({ status: 'success', message: 'OTP berhasil dikirim ke email.' });
   } catch (error) {
+    console.error('Error requestOtp:', error); // tambah log biar keliatan errornya
     res.status(500).json({ error: 'Server error saat request OTP.' });
   }
 };
@@ -54,29 +60,36 @@ const verifyOtp = async (req, res) => {
       user = newUser;
     }
 
-    const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign(
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
 
-    // PASANG COOKIE HTTP-ONLY
+    // ✅ FIX: sameSite pakai string, conditional untuk dev/prod
     res.cookie('auth_token', token, {
       httpOnly: true,
-      secure: true, // true jika di production (HTTPS)
-      sameSite: none, // <--- PENTING: Pakai 'lax' biar diizinin lintas port saat development
-      maxAge: 24 * 60 * 60 * 1000 // 24 jam
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000
     });
 
-    res.json({ 
-        status: 'success', 
-        user: { email: user.email, name: user.name, role: user.role } 
+    res.json({
+      status: 'success',
+      user: { email: user.email, name: user.name, role: user.role }
     });
   } catch (error) {
+    console.error('Error verifyOtp:', error);
     res.status(500).json({ error: 'Server error saat verifikasi.' });
   }
 };
+
 const logout = (req, res) => {
+  // ✅ FIX: sameSite pakai string
   res.clearCookie('auth_token', {
     httpOnly: true,
-    secure: true,
-    sameSite: none
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax'
   });
   res.json({ status: 'success', message: 'Berhasil logout' });
 };
