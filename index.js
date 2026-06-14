@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-// const cors = require('cors'); // <-- KITA PENSIUNKAN LIBRARY INI!
+const cors = require('cors'); // <-- KITA PENSIUNKAN LIBRARY INI!
 const admin = require('firebase-admin'); 
 const cookieParser = require('cookie-parser');
 const ws = require('ws');
