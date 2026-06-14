@@ -12,8 +12,12 @@ const app = express();
 
 // Inisialisasi Firebase Admin
 if (!admin.apps.length) {
-  // Kita suruh server ngebaca dari Environment Variable (bukan file fisik lagi)
+  // Kita suruh server ngebaca dari Environment Variable
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  
+  // FIX JALUR NINJA BUAT \n
+  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+  
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 }
 
@@ -48,4 +52,6 @@ app.use('/api/lost-reports', require('./src/routes/lostReportRoutes'));
 // RUTE NOTIFIKASI YANG UDAH BENER
 app.use('/api/notifications', require('./src/routes/notificationRoutes'));
 
-app.listen(3000, () => console.log('Server running on port 3000'));
+// 4. FIX PORT DINAMIS BUAT RAILWAY
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
