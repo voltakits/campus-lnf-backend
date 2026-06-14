@@ -21,31 +21,37 @@ if (!admin.apps.length) {
   });
 }
 
-// 3. SETUP CORS HTTP-ONLY COOKIES (Jurus Sapu Jagat anti-blokir)
+// 3. SETUP CORS JURUS NUKLIR (Otomatis nerima domain Vercel & laptop)
 app.use(cors({
-  origin: [
-    'http://localhost:5173', // Izin buat frontend di laptop lu
-    'https://frontend-campus-lnf.vercel.app', // Tembak langsung URL Vercel lu di sini!
-    process.env.FRONTEND_URL
-  ].filter(Boolean), // Filter biar aman kalau ada variabel env yang kosong
+  origin: true, 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true 
 }));
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+
+// 4. JURUS PAKSA BUKA PINTU PREFLIGHT (Anti 404 CORS Error)
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    return res.status(200).end(); // Langsung suruh satpamnya masuk (200 OK)
+  }
+  next();
+});
 
 app.use(express.json());
 app.use(cookieParser()); 
 
-// 4. DAFTAR ROUTES (Absensi wajib biar nggak 404 Not Found)
+// 5. DAFTAR ROUTES 
 app.use('/api/auth', require('./src/routes/authRoutes')); 
 app.use('/api/found-items', require('./src/routes/foundItemRoutes'));
 app.use('/api/fcm', require('./src/routes/fcmRoutes'));
-app.use('/api/admin', require('./src/routes/adminRoutes')); // <-- Ini kunci utamanya bro!
+app.use('/api/admin', require('./src/routes/adminRoutes')); 
 app.use('/api/lost-reports', require('./src/routes/lostReportRoutes'));
 app.use('/api/notifications', require('./src/routes/notificationRoutes'));
 
-// 5. FIX PORT DINAMIS BUAT RAILWAY
+// 6. FIX PORT DINAMIS BUAT RAILWAY
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
